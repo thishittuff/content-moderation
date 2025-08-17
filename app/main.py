@@ -26,15 +26,18 @@ async def lifespan(app: FastAPI):
     logger.info("Starting Content Moderation Service...")
     
     # Initialize Sentry if configured
-    if settings.sentry_dsn:
-        sentry_sdk.init(
-            dsn=settings.sentry_dsn,
-            environment=settings.sentry_environment,
-            integrations=[FastApiIntegration()],
-            traces_sample_rate=1.0,
-            profiles_sample_rate=1.0,
-        )
-        logger.info("Sentry integration initialized")
+    if settings.sentry_dsn and settings.sentry_dsn.strip():
+        try:
+            sentry_sdk.init(
+                dsn=settings.sentry_dsn,
+                environment=settings.sentry_environment,
+                integrations=[FastApiIntegration()],
+                traces_sample_rate=1.0,
+                profiles_sample_rate=1.0,
+            )
+            logger.info("Sentry integration initialized")
+        except Exception as e:
+            logger.warning(f"Failed to initialize Sentry: {e}")
     
     # Initialize database
     try:

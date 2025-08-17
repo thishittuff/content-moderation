@@ -2,6 +2,7 @@ import logging
 from typing import Dict, Any, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
+from sqlalchemy.orm import selectinload
 from app.models import (
     ModerationRequest, ModerationResult, NotificationLog,
     ContentType, ModerationStatus, ContentClassification, NotificationChannel
@@ -169,7 +170,7 @@ class ModerationService:
             total_requests = await db.scalar(
                 select(func.count(ModerationRequest.id))
                 .where(ModerationRequest.email_id == user_email)
-            )
+            ) or 0
             
             # Get safe content count
             safe_content = await db.scalar(
@@ -179,7 +180,7 @@ class ModerationService:
                     ModerationRequest.email_id == user_email,
                     ModerationResult.classification == ContentClassification.SAFE
                 )
-            )
+            ) or 0
             
             # Get inappropriate content count
             inappropriate_content = await db.scalar(
@@ -189,7 +190,7 @@ class ModerationService:
                     ModerationRequest.email_id == user_email,
                     ModerationResult.classification != ContentClassification.SAFE
                 )
-            )
+            ) or 0
             
             # Get pending requests count
             pending_requests = await db.scalar(
@@ -198,24 +199,47 @@ class ModerationService:
                     ModerationRequest.email_id == user_email,
                     ModerationRequest.status == ModerationStatus.PENDING
                 )
-            )
+            ) or 0
             
-            # Get recent requests
-            recent_requests = await db.execute(
+            # Get recent requests with eager loading
+            recent_result = await db.execute(
                 select(ModerationRequest)
+                .options(selectinload(ModerationRequest.result))
                 .where(ModerationRequest.email_id == user_email)
                 .order_by(ModerationRequest.created_at.desc())
                 .limit(10)
             )
             
-            recent_requests = recent_requests.scalars().all()
+            recent_requests_raw = recent_result.scalars().all()
+            
+            # Convert to serializable format
+            recent_requests = []
+            for req in recent_requests_raw:
+                result_data = None
+                if req.result:
+                    result_data = {
+                        "id": req.result.id,
+                        "classification": req.result.classification.value,
+                        "confidence": req.result.confidence,
+                        "reasoning": req.result.reasoning,
+                        "created_at": req.result.created_at.isoformat()
+                    }
+                
+                recent_requests.append({
+                    "id": req.id,
+                    "email_id": req.email_id,
+                    "content_type": req.content_type.value,
+                    "status": req.status.value,
+                    "created_at": req.created_at.isoformat(),
+                    "result": result_data
+                })
             
             return {
                 "user_email": user_email,
-                "total_requests": total_requests or 0,
-                "safe_content": safe_content or 0,
-                "inappropriate_content": inappropriate_content or 0,
-                "pending_requests": pending_requests or 0,
+                "total_requests": total_requests,
+                "safe_content": safe_content,
+                "inappropriate_content": inappropriate_content,
+                "pending_requests": pending_requests,
                 "recent_requests": recent_requests
             }
             
@@ -236,20 +260,32 @@ class ModerationService:
         """Get complete moderation result including request and result data"""
         result = await db.execute(
             select(ModerationRequest)
+            .options(selectinload(ModerationRequest.result))
             .where(ModerationRequest.id == request_id)
         )
-        request = result.scalar_one()
+        request = result.scalar_one_or_none()
         
         if not request:
             raise ValueError(f"Moderation request {request_id} not found")
         
+        # Convert result to serializable format
+        result_data = None
+        if request.result:
+            result_data = {
+                "id": request.result.id,
+                "classification": request.result.classification.value,
+                "confidence": request.result.confidence,
+                "reasoning": request.result.reasoning,
+                "created_at": request.result.created_at.isoformat()
+            }
+        
         return {
             "id": request.id,
             "email_id": request.email_id,
-            "content_type": request.content_type,
-            "status": request.status,
-            "created_at": request.created_at,
-            "result": request.result
+            "content_type": request.content_type.value,
+            "status": request.status.value,
+            "created_at": request.created_at.isoformat(),
+            "result": result_data
         }
     
     async def _send_notifications(

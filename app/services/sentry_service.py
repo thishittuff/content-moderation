@@ -3,7 +3,7 @@ import httpx
 from typing import Dict, Any, Optional
 from app.config import settings
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ class SentryService:
 
 **Error Type:** {error_info.get('error_type', 'Unknown')}
 **Error Message:** {error_info.get('error_message', 'No message')}
-**Timestamp:** {error_info.get('timestamp', datetime.utcnow().isoformat())}
+**Timestamp:** {error_info.get('timestamp', datetime.now(timezone.utc).isoformat())}
 **Environment:** {error_info.get('environment', 'Unknown')}
 
 ### Stack Trace
@@ -101,7 +101,7 @@ Please investigate this error and take appropriate action.
             error_info = {
                 "error_type": type(exc).__name__,
                 "error_message": str(exc),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "environment": settings.sentry_environment,
                 "stack_trace": self._get_stack_trace(exc),
                 "sentry_event_id": self._generate_event_id(),
@@ -119,7 +119,7 @@ Please investigate this error and take appropriate action.
             return {
                 "error_type": "ExceptionCaptureError",
                 "error_message": str(e),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "environment": "unknown"
             }
     

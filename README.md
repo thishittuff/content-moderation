@@ -1,10 +1,29 @@
 # Content Moderation Service
 
-A comprehensive AI-powered content moderation service built with FastAPI, OpenAI GPT-4, and modern async/await patterns. The service analyzes user-submitted text and images for inappropriate content, sends notifications via Slack and email, and provides analytics dashboards.
+A comprehensive AI-powered content moderation service built with FastAPI, Google Gemini AI, and modern async/await patterns. The service analyzes user-submitted text and images for inappropriate content, sends notifications via Slack and email, and provides analytics dashboards.
+
+## 🎯 Recent Updates
+
+- ✅ **Fixed AI Response Parsing**: Resolved case sensitivity issues with Gemini API responses
+- ✅ **Improved Error Handling**: Enhanced JSON parsing with fallback mechanisms
+- ✅ **Better Prompt Engineering**: Optimized prompts for consistent JSON responses
+- ✅ **Enhanced Logging**: Added detailed logging for debugging and monitoring
+
+### What Was Fixed
+
+The main issue was that the Gemini API returns classifications in **uppercase** (e.g., "SAFE", "SPAM"), but the `ContentClassification` enum expected **lowercase** values (e.g., "safe", "spam"). This caused JSON parsing to fail and return "Failed to parse AI response".
+
+**Solution**: The service now converts classifications to lowercase before creating the enum:
+```python
+classification_str = parsed_response.get('classification', 'SAFE').lower()
+classification = ContentClassification(classification_str)
+```
+
+**Result**: The API now correctly processes AI responses and provides meaningful classification results with proper reasoning.
 
 ## 🚀 Features
 
-- **AI-Powered Content Analysis**: Uses Google Gemini 1.5 Pro for text and Gemini 1.5 Pro Vision for image moderation
+- **AI-Powered Content Analysis**: Uses Google Gemini 2.0 Flash Lite for text and Gemini 1.5 Pro Vision for image moderation
 - **Multi-Content Support**: Handles both text and image content with intelligent classification
 - **Real-time Notifications**: Sends alerts via Slack and email when inappropriate content is detected
 - **Comprehensive Analytics**: Provides detailed user analytics and content moderation statistics
@@ -28,9 +47,9 @@ A comprehensive AI-powered content moderation service built with FastAPI, OpenAI
          │                       │                       │
          ▼                       ▼                       ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   OpenAI API    │    │   Slack API     │    │  BrevoMail API │
+│   Google AI      │    │   Slack API     │    │  BrevoMail API │
 │                 │    │                 │    │                 │
-│  - Gemini 1.5 Pro│    │  - Notifications│    │  - Email Alerts│
+│  - Gemini 2.0   │    │  - Notifications│    │  - Email Alerts│
 │  - Gemini Vision │    │  - Webhooks     │    │  - Templates   │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
@@ -40,7 +59,7 @@ A comprehensive AI-powered content moderation service built with FastAPI, OpenAI
 - **Backend**: FastAPI with async/await patterns
 - **Database**: PostgreSQL with SQLAlchemy ORM
 - **Cache/Queue**: Redis with Celery
-- **AI Integration**: Google Gemini 1.5 Pro and Gemini Vision
+- **AI Integration**: Google Gemini 2.0 Flash Lite and Gemini Vision
 - **Notifications**: Slack API and BrevoMail API
 - **Monitoring**: Sentry.io with GitHub integration
 - **Containerization**: Docker with Docker Compose
@@ -95,7 +114,7 @@ GITHUB_REPO=your_username/your_repo
 2. Sign in with your Google account
 3. Click "Create API Key"
 4. Copy the API key and paste it in your `.env` file
-5. The service will use Gemini 1.5 Pro for text analysis and Gemini 1.5 Pro Vision for image analysis
+5. The service will use Gemini 2.0 Flash Lite for text analysis and Gemini 1.5 Pro Vision for image analysis
 
 ### 4. Start Services with Docker
 
@@ -192,7 +211,7 @@ GET /api/v1/analytics/summary?user=user@example.com
 | Variable | Description | Required | Default |
 |----------|-------------|----------|---------|
 | `GOOGLE_API_KEY` | Google API key for content analysis | Yes | - |
-| `GEMINI_MODEL` | Gemini model to use | No | `gemini-2.5-flash-lite` |
+| `GEMINI_MODEL` | Gemini model to use | No | `gemini-2.0-flash-lite` |
 | `DATABASE_URL` | PostgreSQL connection string | No | `postgresql+asyncpg://user:password@localhost:5432/content_moderation` |
 | `REDIS_URL` | Redis connection string | No | `redis://localhost:6379/0` |
 | `SLACK_BOT_TOKEN` | Slack bot token for notifications | No | - |
@@ -286,6 +305,11 @@ curl -X POST "http://localhost:8000/api/v1/moderate/text" \
 
 # Test analytics
 curl "http://localhost:8000/api/v1/analytics/summary?user=test@example.com"
+
+# Test with different content types
+curl -X POST "http://localhost:8000/api/v1/moderate/text" \
+  -H "Content-Type: application/json" \
+  -d '{"email_id": "test@example.com", "text_content": "This is spam content promoting fake products"}'
 ```
 
 ### Test Gemini Integration
@@ -296,6 +320,22 @@ python test_gemini.py
 
 # Run basic service tests
 python test_service.py
+
+# Test the complete API flow
+python -c "
+import requests
+import json
+
+# Test safe content
+response = requests.post('http://localhost:8000/api/v1/moderate/text', 
+  json={'email_id': 'test@example.com', 'text_content': 'Hello world'})
+print('Safe content test:', response.json()['result']['classification'])
+
+# Test potentially problematic content
+response = requests.post('http://localhost:8000/api/v1/moderate/text', 
+  json={'email_id': 'test@example.com', 'text_content': 'This is spam content'})
+print('Spam content test:', response.json()['result']['classification'])
+"
 ```
 
 ### Automated Testing
@@ -307,6 +347,50 @@ pytest
 # Run with coverage
 pytest --cov=app
 ```
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+#### 1. "Failed to parse AI response" Error
+- **Cause**: This was a case sensitivity issue between Gemini API responses and enum values
+- **Status**: ✅ **FIXED** - The service now properly handles case conversion
+- **Solution**: No action needed, the fix is included in the current version
+
+#### 2. Google API Key Issues
+- **Error**: "GOOGLE_API_KEY is required"
+- **Solution**: Ensure your `.env` file contains a valid Google API key
+- **Get API Key**: Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
+
+#### 3. Database Connection Issues
+- **Error**: Database connection failures
+- **Solution**: Check if PostgreSQL is running: `docker-compose ps`
+- **Restart**: `docker-compose restart postgres`
+
+#### 4. Content Classification Issues
+- **Issue**: Unexpected classification results
+- **Debug**: Check the logs for raw AI responses
+- **Test**: Use the test scripts to verify Gemini integration
+
+### Debug Mode
+
+Enable debug logging by setting `DEBUG=True` in your `.env` file:
+
+```env
+DEBUG=True
+```
+
+This will provide detailed logs including:
+- Raw Gemini API responses
+- JSON parsing attempts
+- Classification decisions
+- Error details
+
+### Performance Optimization
+
+- **Model Selection**: The service uses Gemini 2.0 Flash Lite for faster text processing
+- **Caching**: Content deduplication prevents re-processing identical content
+- **Async Processing**: All API calls are non-blocking for better performance
 
 ## 🚀 Deployment
 

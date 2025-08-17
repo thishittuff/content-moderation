@@ -18,8 +18,8 @@ sentry_service = SentryService()
 @router.post("/moderate/text", response_model=ModerationRequestResponse)
 async def moderate_text(
     request: TextModerationRequest,
-    db: AsyncSession = Depends(get_db),
-    background_tasks: BackgroundTasks = None
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Moderate text content using AI analysis
@@ -54,8 +54,8 @@ async def moderate_text(
 @router.post("/moderate/image", response_model=ModerationRequestResponse)
 async def moderate_image(
     request: ImageModerationRequest,
-    db: AsyncSession = Depends(get_db),
-    background_tasks: BackgroundTasks = None
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Moderate image content using AI analysis
@@ -90,8 +90,8 @@ async def moderate_image(
 @router.get("/analytics/summary", response_model=AnalyticsSummaryResponse)
 async def get_user_analytics(
     user: str,
-    db: AsyncSession = Depends(get_db),
-    background_tasks: BackgroundTasks = None
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Get analytics summary for a specific user

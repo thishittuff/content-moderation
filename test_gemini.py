@@ -35,7 +35,7 @@ async def test_gemini_service():
         print("\n📝 Testing text analysis...")
         test_text = "Hello world, this is a test message for content moderation."
         
-        classification, confidence, reasoning, llm_response = await service.analyze_text_content(test_text)
+        classification, confidence, reasoning, llm_response = service.analyze_text_content(test_text)
         
         print(f"✅ Text analysis completed:")
         print(f"   - Classification: {classification}")

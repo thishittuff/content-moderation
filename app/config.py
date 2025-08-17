@@ -5,7 +5,7 @@ import os
 
 class Settings(BaseSettings):
     # Database Configuration
-    database_url: str = "postgresql+asyncpg://user:password@localhost:5432/content_moderation"
+    database_url: str = "sqlite+aiosqlite:///./content_moderation.db"
     redis_url: str = "redis://localhost:6379/0"
     
     # Google Gemini Configuration
