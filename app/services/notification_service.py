@@ -87,7 +87,7 @@ class NotificationService:
                 if response.status_code == 200:
                     slack_response = response.json()
                     if slack_response.get("ok"):
-                        logger.info(f"Slack notification sent successfully for request {request.id}")
+                        logger.info(f"Slack notification sent - Request ID: {request.id}")
                         return {"status": "sent", "slack_response": slack_response}
                     else:
                         logger.error(f"Slack API error: {slack_response}")
@@ -144,12 +144,25 @@ class NotificationService:
                     }
                 ],
                 "subject": subject,
-                "htmlContent": html_content
+                "htmlContent": html_content,
+                "textContent": f"""
+Content Moderation Alert
+
+Classification: {result.classification.value.upper()}
+User Email: {request.email_id}
+Content Type: {request.content_type.value}
+Confidence: {result.confidence:.2f}
+Reasoning: {result.reasoning or 'No reasoning provided'}
+Request ID: {request.id}
+Timestamp: {request.created_at.strftime('%Y-%m-%d %H:%M:%S UTC')}
+
+This is an automated alert from the Content Moderation Service.
+                """
             }
             
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    "https://api.brevo.com/v3/sendTransacEmail",
+                    "https://api.brevo.com/v3/smtp/email",
                     headers={
                         "api-key": self.brevo_api_key,
                         "Content-Type": "application/json"
@@ -159,7 +172,7 @@ class NotificationService:
                 )
                 
                 if response.status_code == 201:
-                    logger.info(f"Email notification sent successfully for request {request.id}")
+                    logger.info(f"Email notification sent - Request ID: {request.id}")
                     return {"status": "sent", "email_response": response.json()}
                 else:
                     logger.error(f"BrevoMail API error: {response.status_code} - {response.text}")

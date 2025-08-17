@@ -13,10 +13,19 @@ from contextlib import asynccontextmanager
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 logger = logging.getLogger(__name__)
+
+# Reduce SQLAlchemy logging verbosity
+logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
+logging.getLogger("sqlalchemy.pool").setLevel(logging.WARNING)
+logging.getLogger("sqlalchemy.dialects").setLevel(logging.WARNING)
+logging.getLogger("sqlalchemy.orm").setLevel(logging.WARNING)
+
+# Reduce httpx logging verbosity
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
 @asynccontextmanager

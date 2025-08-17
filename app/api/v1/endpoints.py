@@ -28,11 +28,11 @@ async def moderate_text(
     - **text_content**: Text content to moderate (1-10000 characters)
     """
     try:
-        logger.info(f"Text moderation request received for {request.email_id}")
+        logger.info(f"Text moderation request - User: {request.email_id}")
         
         result = await moderation_service.moderate_text_content(db, request)
         
-        logger.info(f"Text moderation completed successfully for {request.email_id}")
+        logger.info(f"Text moderation completed - User: {request.email_id}")
         return result
         
     except Exception as e:
@@ -64,11 +64,11 @@ async def moderate_image(
     - **image_data**: Base64 encoded image data
     """
     try:
-        logger.info(f"Image moderation request received for {request.email_id}")
+        logger.info(f"Image moderation request - User: {request.email_id}")
         
         result = await moderation_service.moderate_image_content(db, request)
         
-        logger.info(f"Image moderation completed successfully for {request.email_id}")
+        logger.info(f"Image moderation completed - User: {request.email_id}")
         return result
         
     except Exception as e:

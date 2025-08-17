@@ -40,7 +40,7 @@ async def init_db():
             # Import models to ensure they are registered
             from app.models import Base
             await conn.run_sync(Base.metadata.create_all)
-        logger.info("Database tables created successfully")
+        logger.info("Database initialized")
     except Exception as e:
         logger.error(f"Failed to initialize database: {e}")
         raise

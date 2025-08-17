@@ -55,7 +55,7 @@ class ModerationService:
             await db.commit()
             await db.refresh(moderation_request)
             
-            logger.info(f"Created moderation request {moderation_request.id} for text content")
+            logger.info(f"Processing text moderation request {moderation_request.id}")
             
             # Analyze content using Gemini
             classification, confidence, reasoning, llm_response = await self.gemini_service.analyze_text_content(
@@ -80,7 +80,7 @@ class ModerationService:
             await db.refresh(moderation_request)
             await db.refresh(moderation_result)
             
-            logger.info(f"Text moderation completed for request {moderation_request.id}")
+            logger.info(f"Text moderation completed - ID: {moderation_request.id}, Classification: {classification.value}")
             
             # Send notifications if content is inappropriate
             if classification != ContentClassification.SAFE:
@@ -121,7 +121,7 @@ class ModerationService:
             await db.commit()
             await db.refresh(moderation_request)
             
-            logger.info(f"Created moderation request {moderation_request.id} for image content")
+            logger.info(f"Processing image moderation request {moderation_request.id}")
             
             # Analyze content using Gemini Vision
             classification, confidence, reasoning, llm_response = await self.gemini_service.analyze_image_content(
@@ -146,7 +146,7 @@ class ModerationService:
             await db.refresh(moderation_request)
             await db.refresh(moderation_result)
             
-            logger.info(f"Image moderation completed for request {moderation_request.id}")
+            logger.info(f"Image moderation completed - ID: {moderation_request.id}, Classification: {classification.value}")
             
             # Send notifications if content is inappropriate
             if classification != ContentClassification.SAFE:
@@ -310,7 +310,7 @@ class ModerationService:
                 db.add(notification_log)
             
             await db.commit()
-            logger.info(f"Notifications sent for request {request.id}")
+            logger.info(f"Notifications processed for request {request.id}")
             
         except Exception as e:
             logger.error(f"Error sending notifications: {e}")

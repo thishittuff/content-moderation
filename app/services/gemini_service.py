@@ -81,17 +81,12 @@ class GeminiService:
             # Parse the response
             llm_response = response.text.strip()
             
-            # Log the raw response for debugging
-            logger.info(f"Raw Gemini response: {llm_response}")
-            
             # Clean the response - remove any markdown formatting
             if llm_response.startswith('```json'):
                 llm_response = llm_response[7:]
             if llm_response.endswith('```'):
                 llm_response = llm_response[:-3]
             llm_response = llm_response.strip()
-            
-            logger.info(f"Cleaned Gemini response: {llm_response}")
             
             try:
                 # Try to parse JSON response
@@ -198,17 +193,12 @@ class GeminiService:
             # Parse the response
             llm_response = response.text.strip()
             
-            # Log the raw response for debugging
-            logger.info(f"Raw Gemini Vision response: {llm_response}")
-            
             # Clean the response - remove any markdown formatting
             if llm_response.startswith('```json'):
                 llm_response = llm_response[7:]
             if llm_response.endswith('```'):
                 llm_response = llm_response[:-3]
             llm_response = llm_response.strip()
-            
-            logger.info(f"Cleaned Gemini Vision response: {llm_response}")
             
             try:
                 # Try to parse JSON response
