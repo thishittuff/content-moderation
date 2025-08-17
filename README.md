@@ -192,7 +192,7 @@ GET /api/v1/analytics/summary?user=user@example.com
 | Variable | Description | Required | Default |
 |----------|-------------|----------|---------|
 | `GOOGLE_API_KEY` | Google API key for content analysis | Yes | - |
-| `GEMINI_MODEL` | Gemini model to use | No | `gemini-1.5-pro` |
+| `GEMINI_MODEL` | Gemini model to use | No | `gemini-2.5-flash-lite` |
 | `DATABASE_URL` | PostgreSQL connection string | No | `postgresql+asyncpg://user:password@localhost:5432/content_moderation` |
 | `REDIS_URL` | Redis connection string | No | `redis://localhost:6379/0` |
 | `SLACK_BOT_TOKEN` | Slack bot token for notifications | No | - |
@@ -345,48 +345,3 @@ spec:
         - containerPort: 8000
 ```
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-For support and questions:
-
-1. Check the API documentation at `/docs`
-2. Review the logs: `docker-compose logs -f app`
-3. Check health endpoints
-4. Verify environment configuration
-5. Review Sentry for error details
-
-## 🔮 Future Enhancements
-
-- [ ] Webhook support for real-time notifications
-- [ ] Advanced content filtering rules
-- [ ] Machine learning model fine-tuning
-- [ ] Multi-language support
-- [ ] Content moderation dashboard
-- [ ] API rate limiting and authentication
-- [ ] Content backup and recovery
-- [ ] Advanced analytics and reporting
-
-## 📊 Performance Metrics
-
-- **Text Moderation**: ~1-3 seconds per request (Gemini 1.5 Pro)
-- **Image Moderation**: ~3-8 seconds per request (Gemini 1.5 Pro Vision)
-- **Database Queries**: Optimized with proper indexing
-- **Concurrent Requests**: Handles 100+ concurrent users
-- **Memory Usage**: ~200-500MB per container
-- **Storage**: Minimal (content hashes only)
-
----
-
-**Note**: This service is designed for production use but should be thoroughly tested in your environment before deployment. Always review security settings and API keys configuration.
